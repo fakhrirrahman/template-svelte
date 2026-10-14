@@ -11,7 +11,6 @@
 		SidebarMenuButton,
 		SidebarMenuItem,
 		SidebarSeparator,
-		useSidebar,
 	} from '#lib/components/ui/sidebar/index.js';
 	import {
 		LayoutDashboard,
@@ -22,17 +21,14 @@
 		FileText,
 		FileSpreadsheet,
 		Database,
-		ChevronsLeft,
-		type Icon,
 	} from '@lucide/svelte';
 	import { page } from '$app/state';
-
-	const sidebar = useSidebar();
+	import type { Component } from 'svelte';
 
 	type NavItem = {
 		title: string;
 		url: string;
-		icon: typeof Icon;
+		icon: Component<{ class?: string }>;
 	};
 
 	type NavGroup = {
@@ -71,80 +67,83 @@
 	}
 </script>
 
-<Sidebar collapsible="icon" class="border-r-0">
-	<!-- ─── Branding Header ─── -->
-	<SidebarHeader class="px-4 py-5">
-		<div class="flex items-center justify-between">
-			<a href="/dashboard" class="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-					N
-				</div>
-				<div class="flex flex-col group-data-[collapsible=icon]:hidden">
-					<span class="text-sm font-semibold leading-tight tracking-tight">NSOC KPI</span>
-					<span class="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-						Executive Suite
-					</span>
-				</div>
-			</a>
+<Sidebar collapsible="icon">
+  <!-- ─── Branding Header ─── -->
+  <SidebarHeader class="p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+    <a
+      href="/dashboard"
+      class="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8"
+    >
+      <div
+        class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm shadow-sm shadow-primary/20"
+      >
+        N
+      </div>
+      <div class="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+        <span
+          class="text-sm font-semibold leading-tight tracking-tight text-sidebar-foreground truncate"
+          >NSOC KPI</span
+        >
+        <span
+          class="text-[10px] font-medium uppercase tracking-widest text-muted-foreground truncate"
+        >
+          Executive Suite
+        </span>
+      </div>
+    </a>
+  </SidebarHeader>
 
-			<!-- Collapse / Expand Toggle -->
-			<button
-				onclick={() => sidebar.toggle()}
-				class="flex h-7 w-7 items-center justify-center rounded-md
-					   text-muted-foreground hover:bg-accent hover:text-foreground
-					   transition-colors duration-200 group-data-[collapsible=icon]:hidden"
-				aria-label="Toggle sidebar"
-			>
-				<ChevronsLeft class="size-4" />
-			</button>
-		</div>
-	</SidebarHeader>
+  <SidebarSeparator />
 
-	<SidebarSeparator />
+  <!-- ─── Navigation Groups ─── -->
+  <SidebarContent class="px-2 py-2">
+    {#each navGroups as group}
+      <SidebarGroup>
+        <SidebarGroupLabel
+          class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-1"
+        >
+          {group.label}
+        </SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {#each group.items as item}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={isActive(item.url)}
+                  tooltipContent={item.title}
+                  class={isActive(item.url)
+                    ? "bg-primary/15 text-primary font-medium hover:bg-primary/20 hover:text-primary"
+                    : ""}
+                >
+                  {#snippet child({ props })}
+                    <a href={item.url} {...props}>
+                      <item.icon class="size-4" />
+                      <span>{item.title}</span>
+                    </a>
+                  {/snippet}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            {/each}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    {/each}
+  </SidebarContent>
 
-	<!-- ─── Navigation Groups ─── -->
-	<SidebarContent class="px-2 py-2">
-		{#each navGroups as group}
-			<SidebarGroup>
-				<SidebarGroupLabel class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-1">
-					{group.label}
-				</SidebarGroupLabel>
-				<SidebarGroupContent>
-					<SidebarMenu>
-						{#each group.items as item}
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={isActive(item.url)}
-									tooltipContent={item.title}
-									class={isActive(item.url)
-										? 'bg-primary/15 text-primary font-medium hover:bg-primary/20 hover:text-primary'
-										: ''}
-								>
-									{#snippet child({ props })}
-										<a href={item.url} {...props}>
-											<item.icon class="size-4" />
-											<span>{item.title}</span>
-										</a>
-									{/snippet}
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						{/each}
-					</SidebarMenu>
-				</SidebarGroupContent>
-			</SidebarGroup>
-		{/each}
-	</SidebarContent>
-
-	<!-- ─── Footer with User Avatar ─── -->
-	<SidebarFooter class="px-4 py-4">
-		<div class="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-			<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-				N
-			</div>
-			<div class="flex flex-col group-data-[collapsible=icon]:hidden">
-				<span class="text-xs font-medium">NSOC Admin</span>
-				<span class="text-[10px] text-muted-foreground">admin@nsoc.id</span>
-			</div>
-		</div>
-	</SidebarFooter>
+  <!-- ─── Footer with User Avatar ─── -->
+  <SidebarFooter class="p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+    <div
+      class="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8"
+    >
+      <div
+        class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+      >
+        N
+      </div>
+      <div class="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+        <span class="text-xs font-medium text-sidebar-foreground truncate">NSOC Admin</span>
+        <span class="text-[10px] text-muted-foreground truncate">admin@nsoc.id</span>
+      </div>
+    </div>
+  </SidebarFooter>
 </Sidebar>
